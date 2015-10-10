@@ -9,9 +9,23 @@ import re
 
 
 #will used to remove certain words in order to reduce feature space
-black_list = ["whole","fat", "reduced", "low"]
+black_list = ["whole","fat", "reduced", "low","crushed","fine","fresh",
+            "ground","less","chopped","lowfat","large","grated","sodium"]
 
-def clean(words):
+def intersect(a,b):
+    return list(set(a) & set(b))
+
+def remove_words(words=[], black_list=[]):
+    new_list = []
+    for word in words:
+        overlap = intersect(word.lower().split(" "),black_list)
+        if overlap:
+            for term in overlap:
+                word = word.replace(term,"")
+        new_list.append(word)
+    return new_list
+
+def clean(words=[]):
     clean_list=[]
     #Remove everything that's not a letter or space
     for word in words:
@@ -27,11 +41,17 @@ def graph(dict_to_graph={}):
 
 #main starts here
 def main():
+    #If true uses blacklist to remove words
+    reduce_feature = True
+
     features = []
     classes = []
     #used to count occurances of each ingrediant and cuisine type
     feature_cnt = Counter()
     class_cnt = Counter()
+
+    feature_total_cnt = Counter()
+    class_total_cnt = Counter()
 
     with open('train.json') as f:
         recipes = json.loads(f.read())
@@ -40,26 +60,34 @@ def main():
             classes.append(str(recipe['cuisine']).strip())
             features += recipe['ingredients']
 
-    #count the occurances of each cuisine type and class
     for feature in features:
-        feature_cnt[feature] += 1
+        feature_total_cnt[feature] += 1
 
     for cl in classes:
-        class_cnt[cl] += 1
-
+        class_total_cnt[cl] += 1
+    #remove duplicate ingrediant entries
     class_set = Set(classes)
     feature_set = Set(features)
 
-    print clean(class_set)
-    feature_set = clean(feature_set)
-    feature_set.sort()
-    #pprint(feature_set)
-    #print clean(ingredients)
-    print "Number of Features [%d]" % len(feature_set)
-    print "Number of Classes [%d]" % len(class_set)
-    #pprint(class_cnt)
-    #pprint(feature_cnt)
-    graph(class_cnt)
+    print "Total Number of Unique Classes [%d]" % len(class_set)
+    print "Total Number of Unique Features [%d]" % len(feature_set)
+    pprint(class_set)
+    
+    if reduce_feature:
+        feature_set = Set(remove_words(features,black_list))
 
+    feature_set = Set(clean(feature_set))
+
+    print "Cleaned Number of Features [%d]" % len(feature_set)
+
+    with open('ingrediants_by_occurance.txt', 'w') as sorted_ingrediants_file:
+
+        for ingrediant , cnt in feature_total_cnt.most_common():
+            sorted_ingrediants_file.write(str(ingrediant.encode('utf-8')) + ":" + str(cnt)+"\n")
+    with open('ingrediants_reduced.txt', 'w') as feature_set_file:
+        for ingrediant in feature_set:
+            feature_set_file.write(str(ingrediant.encode('utf-8')) +"\n")
+
+    graph(class_total_cnt)
 if __name__ == "__main__":
     main()
