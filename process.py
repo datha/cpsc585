@@ -29,8 +29,8 @@ def clean(words=[]):
     clean_list=[]
     #Remove everything that's not a letter or space
     for word in words:
-        clean_word = re.sub(r"[^a-zA-Z\s]","",word)
-        clean_list.append(clean_word.lower())
+        clean_word = re.sub(r"[^a-zA-Z]"," ",word)
+        clean_list.append(clean_word.lower().strip())
     return clean_list
 
 def graph(dict_to_graph={}):
@@ -72,9 +72,10 @@ def main():
     print "Total Number of Unique Classes [%d]" % len(class_set)
     print "Total Number of Unique Features [%d]" % len(feature_set)
     pprint(class_set)
-    
+    feature_set = Set(clean(feature_set))
     if reduce_feature:
-        feature_set = Set(remove_words(features,black_list))
+        print "Removing words"
+        feature_set = Set(remove_words(feature_set,black_list))
 
     feature_set = Set(clean(feature_set))
 
