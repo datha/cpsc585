@@ -8,18 +8,18 @@ import re
 
 
 
-#used to remove certain words in order to reduce feature space
+#will used to remove certain words in order to reduce feature space
 black_list = ["whole","fat", "reduced", "low"]
 
 def clean(words):
     clean_list=[]
+    #Remove everything that's not a letter or space
     for word in words:
         clean_word = re.sub(r"[^a-zA-Z\s]","",word)
         clean_list.append(clean_word.lower())
     return clean_list
 
 def graph(dict_to_graph={}):
-    #y_pos = np.arange(len(list(d.get_keys()))
     plt.barh(range(len(dict_to_graph)), dict_to_graph.values(),align='center')
     plt.yticks(range(len(dict_to_graph)), dict_to_graph.keys())
     plt.show()
@@ -38,13 +38,9 @@ def main():
 
         for recipe in recipes:
             classes.append(str(recipe['cuisine']).strip())
-            #print recipe['cuisine']
             features += recipe['ingredients']
-            # pprint(recipe['ingredients'])
 
-    #pprint(Set(features))
-    #pprint(classes)
-
+    #count the occurances of each cuisine type and class
     for feature in features:
         feature_cnt[feature] += 1
 
@@ -53,14 +49,14 @@ def main():
 
     class_set = Set(classes)
     feature_set = Set(features)
-    #print feature_set
+
     print clean(class_set)
     feature_set = clean(feature_set)
     feature_set.sort()
     #pprint(feature_set)
     #print clean(ingredients)
-    #print "Number of Features [%d]" % len(feature_set)
-    #print "Number of Classes [%d]" % len(class_set)
+    print "Number of Features [%d]" % len(feature_set)
+    print "Number of Classes [%d]" % len(class_set)
     #pprint(class_cnt)
     #pprint(feature_cnt)
     graph(class_cnt)
