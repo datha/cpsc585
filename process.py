@@ -10,7 +10,7 @@ import re
 
 #will used to remove certain words in order to reduce feature space
 black_list = ["whole","fat", "reduced", "low","crushed","fine","fresh",
-            "ground","less","chopped","lowfat","large","grated","sodium"]
+            "ground","less","chopped","nonfat","lowfat","large","grated","sodium","lowsodium","free","lean","no", "solid","cooking","tips"]
 
 def intersect(a,b):
     return list(set(a) & set(b))
@@ -38,12 +38,20 @@ def graph(dict_to_graph={}):
     plt.yticks(range(len(dict_to_graph)), dict_to_graph.keys())
     plt.show()
 
+def reduce_to_single_word(words):
+    new_set = Set()
+    for word in words:
+        for w in word.lower().split(" "):
+            if w:
+                new_set.add(w)
+                print w
+    return new_set
 
 #main starts here
 def main():
     #If true uses blacklist to remove words
     reduce_feature = True
-
+    reduce_to_single = True
     features = []
     classes = []
     #used to count occurances of each ingrediant and cuisine type
@@ -65,6 +73,7 @@ def main():
 
     for cl in classes:
         class_total_cnt[cl] += 1
+
     #remove duplicate ingrediant entries
     class_set = Set(classes)
     feature_set = Set(features)
@@ -73,6 +82,9 @@ def main():
     print "Total Number of Unique Features [%d]" % len(feature_set)
     pprint(class_set)
     feature_set = Set(clean(feature_set))
+    if reduce_to_single:
+        print "Reducing to single"
+        feature_set = Set(reduce_to_single_word(feature_set))
     if reduce_feature:
         print "Removing words"
         feature_set = Set(remove_words(feature_set,black_list))
@@ -88,7 +100,6 @@ def main():
     with open('ingrediants_reduced.txt', 'w') as feature_set_file:
         for ingrediant in feature_set:
             feature_set_file.write(str(ingrediant.encode('utf-8')) +"\n")
-
     graph(class_total_cnt)
 if __name__ == "__main__":
     main()
