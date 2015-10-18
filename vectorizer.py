@@ -6,7 +6,9 @@ from collections import Counter
 import matplotlib.pyplot as plt
 import re
 import numpy as np
-from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.feature_extraction import DictVectorizer
+
+
 class Recipe(object):
 
     def __init__(self, uid, cuisine, ingredients):
@@ -102,9 +104,7 @@ def main():
     for cl in classes:
         class_total_cnt[cl] += 1
 
-    print "Total Number of  Classes [%d]" % len(classes)
-    print "Total Number of  Features [%d]" % len(features)
-    print "Total Number of Recipes [%d]" % len(recipes)
+
     #clean recipes
     if CLEAN:
         features = clean(features)
@@ -120,16 +120,29 @@ def main():
         print "Removing words"
         features = Set(remove_words(features, black_list))
 
-    features = Set(clean(features))
-    for recipe in recipes:
-        recipe.ingredients= clean(recipe.ingredients)
-    # create mappings here so we can convert recipes to int arrays
-    vectorizer = CountVectorizer(min_df=1)
-    X = vectorizer.fit_transform(features)
-    print X
-    vectorizer.transform(recipes[0].ingredients).toarray()
 
-    #print vectorizer.get_feature_names() 
-    #print vectorizer.transform(recipes[0].ingredients).toarray()
+    print "Total Number of Classes [%d]" % len(classes)
+    print "Total Number of Features [%d]" % len(features)
+    print "Total Number of Recipes [%d]" % len(recipes)
+    #[ 
+    #   {'ingredient0': 'ingredient0','ingredient1': 'ingredient1',
+    #   'ingredientn': 'ingredientn',},
+    #]
+    feature_map = []
+    for recipe in recipes:
+        d = dict()
+        for ingredient in recipe.ingredients:
+            d[ingredient] = ingredient
+        feature_map.append(d)
+    print feature_map[0]
+
+    vec = DictVectorizer()
+    #print vec.fit_transform(feature_map).toarray()[0]
+    X = vec.fit_transform(feature_map).toarray()
+    #print vec.get_feature_names()
+    with open('bit_array.txt', 'w') as bit_array_file:
+
+        bit_array_file.write(X[0])
+
 if __name__ == "__main__":
     main()
