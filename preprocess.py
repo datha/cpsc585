@@ -2,7 +2,7 @@ import json
 import gzip
 from pprint import pprint
 from sets import Set
-from collections import Counter
+from collections import Counter, defaultdict
 import matplotlib.pyplot as plt
 import re
 import numpy as np
@@ -10,6 +10,8 @@ from sklearn.feature_extraction import DictVectorizer
 import sys
 import pickle
 from collections import Counter
+
+from random import shuffle
 class Recipe(object):
 
     def __init__(self, uid, cuisine, ingredients):
@@ -102,6 +104,14 @@ def main():
 
     for cl in classes:
         class_total_cnt[cl] += 1
+
+
+    label = 0
+    for c in Set(classes):
+        class_map[c] = label
+        label += 1
+    print class_map
+
     #clean recipes
     if CLEAN:
         features = clean(features)
@@ -121,15 +131,17 @@ def main():
         #get least number fo samples
         c, least = class_total_cnt.most_common()[-1]
         print least
-    #[ 
-    #   {'ingredient0': 'ingredient0','ingredient1': 'ingredient1',
-    #   'ingredientn': 'ingredientn',},
-    #]
-    label = 0
-    for c in Set(classes):
-        class_map[c] = label
-        label += 1
-    print class_map
+        bins = defaultdict(list)
+        for recipe in recipes:
+            bins[class_map[recipe.cuisine]].append(recipe)
+        
+        recipes = []
+        for key in bins.keys():
+            recipes = recipes + bins[key][:least]
+
+    #print recipes[0]
+    shuffle(recipes)
+    print "Numober of samples %d" % len(recipes)
 
     feature_map = []
     y_train =[]
@@ -149,7 +161,10 @@ def main():
     y_train = np.asarray(y_train)
     labels = np.asarray(labels)
     label_y = np.append([labels],[y_train],axis=0)
-    print label_y
+    #I think this still keesp the data lined up..need to double check
+    all_data = np.append(label_y,X_train.transpose(),axis=0)
+    print all_data
+    np.save('nn_input', all_data)
     #print y_train
 if __name__ == "__main__":
     main()
