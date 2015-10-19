@@ -7,7 +7,8 @@ import matplotlib.pyplot as plt
 import re
 import numpy as np
 from sklearn.feature_extraction import DictVectorizer
-
+from sknn.mlp import Classifier, Layer
+from sknn.platform import gpu32
 
 class Recipe(object):
 
@@ -74,8 +75,8 @@ def main():
     recipes = []
     # If true uses blacklist to remove words
     REMOVE_WORDS = False
-    REDUCE_TO_SINGLE = False
-    CLEAN = False
+    REDUCE_TO_SINGLE = True
+    CLEAN = True
     features = []
     classes = []
     # used to count occurances of each ingrediant and cuisine type
@@ -98,12 +99,6 @@ def main():
             features += recipe['ingredients']
             recipes.append(Recipe(uid, cuisine, recipe['ingredients']))
 
-    for feature in features:
-        feature_total_cnt[feature] += 1
-
-    for cl in classes:
-        class_total_cnt[cl] += 1
-
 
     #clean recipes
     if CLEAN:
@@ -119,30 +114,46 @@ def main():
     if REMOVE_WORDS:
         print "Removing words"
         features = Set(remove_words(features, black_list))
-
-
-    print "Total Number of Classes [%d]" % len(classes)
-    print "Total Number of Features [%d]" % len(features)
-    print "Total Number of Recipes [%d]" % len(recipes)
     #[ 
     #   {'ingredient0': 'ingredient0','ingredient1': 'ingredient1',
     #   'ingredientn': 'ingredientn',},
     #]
+
+    #Build dictionary to map class name to int id
+    label = 0
+    for c in Set(classes):
+        class_map[c] = label
+        label += 1
+    print class_map
+
     feature_map = []
+    y_train =[]
     for recipe in recipes:
-        d = dict()
+        ing_d = dict()
+        y_train.append(class_map[recipe.cuisine])
         for ingredient in recipe.ingredients:
-            d[ingredient] = ingredient
-        feature_map.append(d)
-    print feature_map[0]
+            ing_d[ingredient] = ingredient
+        feature_map.append(ing_d)
 
-    vec = DictVectorizer()
-    #print vec.fit_transform(feature_map).toarray()[0]
-    X = vec.fit_transform(feature_map).toarray()
-    #print vec.get_feature_names()
-    with open('bit_array.txt', 'w') as bit_array_file:
+    x_vec = DictVectorizer(dtype=np.int)
+    #y_vec = DictVectorizer(dtype=np.int)
 
-        bit_array_file.write(X[0])
-
+    X_train = x_vec.fit_transform(feature_map).toarray()
+    #y_train = y_vec.fit_transform(class_map).toarray()
+    #print y_train[:10]
+    #print y_vec.get_feature_names()
+    y_train = np.asarray(y_train)
+    nn = Classifier(
+        layers=[
+            Layer("Maxout", units=3000, pieces=2),
+            Layer("Maxout", units=500, pieces=2),
+            Layer("Softmax")],
+        learning_rate=0.001,
+        n_iter=5)
+    print "Trying to fit data"
+    nn.fit(X_train, y_train)
+ 
+    #np.savetxt('x_train.out', x_train[:10], delimiter=',',fmt='%i')
+    #np.savetxt('y_train.out', y_train[:10], delimiter=',',fmt='%i')
 if __name__ == "__main__":
     main()
