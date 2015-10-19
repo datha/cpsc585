@@ -102,10 +102,11 @@ def main():
             features += recipe['ingredients']
             recipes.append(Recipe(uid, cuisine, recipe['ingredients']))
 
+    print "Total number of samples: %d" % len(recipes)
     for cl in classes:
         class_total_cnt[cl] += 1
 
-
+    shuffle(recipes)
     label = 0
     for c in Set(classes):
         class_map[c] = label
@@ -130,14 +131,15 @@ def main():
     if GET_UNIFORM:
         #get least number fo samples
         c, least = class_total_cnt.most_common()[-1]
-        print least
+        number_per_class = least*3
+        print number_per_class
         bins = defaultdict(list)
         for recipe in recipes:
             bins[class_map[recipe.cuisine]].append(recipe)
         
         recipes = []
         for key in bins.keys():
-            recipes = recipes + bins[key][:least]
+            recipes = recipes + bins[key][:number_per_class]
 
     #print recipes[0]
     shuffle(recipes)
@@ -163,7 +165,7 @@ def main():
     label_y = np.append([labels],[y_train],axis=0)
     #I think this still keesp the data lined up..need to double check
     all_data = np.append(label_y,X_train.transpose(),axis=0)
-    print all_data
+    #print all_data
     np.save('nn_input', all_data)
     #print y_train
 if __name__ == "__main__":

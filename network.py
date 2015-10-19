@@ -8,17 +8,22 @@ import pickle
 
 
 def main():
-    data = np.load('nn_input.npy')
-    print "Number of training samples %d" % len(data)
-    uid, y_train, X_train = data[0,:], data[1,:], data[2:,:]
 
+    logging.basicConfig(
+            format="%(message)s",
+            level=logging.DEBUG,
+            stream=sys.stdout)
+    data = np.load('nn_input.npy')
+    #print data
+
+    uid, y_train, X_train = data[0,:].transpose(), data[1,:].transpose(), data[2:,:].transpose()
     nn = Classifier(
         layers=[
-            Layer("Maxout", name="h1", units=300, pieces=2,dropout=.1),
+            Layer("Maxout", name="h1", units=200, pieces=2,dropout=.1),
             Layer("Maxout", name="h2", units=100, pieces=2,dropout=.1),
             Layer("Softmax")],
         learning_rate=0.001,
-        n_iter=5)
+        n_iter=8)
 
     print "Trying to fit data"
     train_index = int(X_train.shape[0] * .8)
