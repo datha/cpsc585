@@ -83,12 +83,12 @@ def main():
     REMOVE_WORDS = True
     REDUCE_TO_SINGLE = True
     CLEAN = True
-    GET_UNIFORM = True
+    GET_UNIFORM = False
     #artifically inflate data size by using duplicate data
-    GET_DUPLICATE = True
+    GET_DUPLICATE = False
     # Multiplied the the class count of the class with the least number of
     # occurances.
-    NUMBER_OF_SAMPLES_PER_CLASS = 7000
+    NUMBER_OF_SAMPLES_PER_CLASS = 1000
 
     features = []
     classes = []
